@@ -1,0 +1,410 @@
+<!DOCTYPE html>  <html lang="de">  
+<head>  
+  <meta charset="UTF-8">  
+  <title>clicker</title>  
+  <style>  
+    body {  
+      font-family: sans-serif;  
+      overflow: hidden; /* verhindert Scrollbars, damit die Autos sauber runterfahren */  
+    }  #counter {  
+  position: absolute;  
+  top: 60px;  
+  left: 180px;  
+  font-size: 24px;  
+  z-index: 1000;  
+}  
+
+#btn {  
+  position: absolute;  
+  top: 150px;  
+  left: 110px;  
+  padding: 10px 20px;  
+  font-size: 18px;  
+  transition: transform 0.1s;  
+  z-index: 1000;  
+}  
+
+#btn:active {  
+  transform: translateY(10px);  
+}  
+
+#wertbtn {  
+  position: absolute;  
+  top: 380px;  
+  left: 110px;  
+  padding: 10px 20px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}  
+
+#preis {  
+  position: absolute;  
+  top: 420px;  
+  left: 90px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}   
+  
+#auto {  
+  position: absolute;  
+  top: 490px;  
+  left: 110px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}   
+  
+#autoPower {  
+  position: absolute;  
+  top: 0px;  
+  left: 30px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}  
+
+#text1 {  
+  position: absolute;  
+  top: 520px;  
+  left: 130px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}     
+#kps {  
+  position: absolute;  
+  top: 80px;  
+  left: 175px;  
+  font-size: 18px;  
+  z-index: 1000;  
+}   
+#menü {  
+  position: absolute;  
+  top: 10px;  
+  left: 10px;  
+  font-size: 30px;  
+  z-index: 1000;  
+}    
+#wert {  
+  display: none;  
+}       
+
+/* Overlay-Design */  
+.overlay {  
+  position: fixed;  
+  top: 0;  
+  left: 0;  
+  width: 100%;  
+  height: 100%;  
+  background: rgba(0,0,0,0.9);  
+  display: none;  
+  justify-content: center;  
+  align-items: center;  
+  flex-direction: column;  
+  color: white;  
+  z-index: 2000;  
+}  
+
+.overlay button {  
+  padding: 15px 40px;  
+  font-size: 22px;  
+  border: none;  
+  border-radius: 10px;  
+  cursor: pointer;  
+  margin: 10px;  
+  transition: 0.2s;  
+}  
+
+#schliesseMenü, #schliesseMusik {  
+  position: absolute;  
+  top: 10px;  
+  right: 15px;  
+  background: none;  
+  border: none;  
+  color: red;  
+  font-size: 28px;  
+  cursor: pointer;  
+}  
+
+#musikRegler {  
+  width: 200px;  
+}  
+
+/* Auto-Bild Styling */  
+.autoBild {  
+  position: absolute;  
+  width: 64px; /* anpassbar */  
+  height: auto;  
+  pointer-events: none; /* verhindern, dass Klicks die Autos beeinflussen */  
+  z-index: 500;  
+  will-change: transform;  
+  user-select: none;  
+}
+
+  </style>  
+</head>  
+<body>  
+  <h1><span id="counter">0</span></h1>  
+  <h2><span id="wert">1</span></h2>  
+  <button id="wertbtn" onclick="upgrade()">Upgrade kaufen</button>  
+  <p id="preis">Upgrade kostet <span id="kosten">2000</span> Punkte</p>  <button id="menü" onclick="menüdisplay()">[=]</button>
+
+  <div id="overlayMenü" class="overlay">  
+    <button id="schliesseMenü" onclick="schliesseMenü()">X</button>  
+    <button id="Konto">Konto</button>  
+    <button id="Shop">Shop</button>  
+    <button id="Einstellungen" onclick="zeigeEinstellungen()">Einstellungen</button>  
+  </div>    <div id="overlayEinstellungen" class="overlay">  
+    <button id="schliesseEinstellungen" onclick="schliesseEinstellungen()">X</button>  
+    <button id="musikMenüBtn" onclick="zeigeMusik()">Musik</button>  
+  </div>    <div id="overlayMusik" class="overlay">  
+    <button id="schliesseMusik" onclick="schliesseMusik()">X</button>  
+    <h2>🎵 Musiksteuerung 🎵</h2>  
+    <p id="aktuellerSong">Aktueller Song: –</p>  
+    <button onclick="toggleMusik()">Musik An/Aus</button>  
+    <div>  
+      <button onclick="vorherigerSong()">⏮️ Letzter</button>  
+      <button onclick="naechsterSong()">⏭️ Nächster</button>  
+    </div>  
+    <label>Lautstärke:</label>  
+    <input type="range" id="musikRegler" min="0" max="1" step="0.01" value="0.5" onchange="lautstärkeÄndern(this.value)">  
+  </div>    <p id="kps">kps <span id="autoPower">0</span> </p>    
+  <button id="auto" onclick="upgradeAuto()">Auto-Clicker kaufen</button>  
+  <p id="text1">kostet <span id="autoKosten">5</span> Punkte</p>  
+  <img id="btn" src="Zeichnung 1.png" alt="Klick mich!" width="150" onclick="erhoehe()">    <script>  
+    let zaehler = 0;  
+    let klickwert = 1;  
+    let autoPower = 0;         
+    let upgradeKosten = 2000;   
+    let autoKosten = 5;       
+  
+    const bilder = [  
+      "Zeichnung 1.png",  
+      "Zeichnung 2.png",  
+      "Zeichnung 3.png",  
+      "Zeichnung 4.png",  
+      "Zeichnung 5.png",  
+      "Zeichnung 6.png",  
+      "Zeichnung 7.png",  
+      "Zeichnung 8.png",  
+      "Zeichnung 9.png",  
+      "Zeichnung 10.png",  
+      "Zeichnung 11.png",  
+    ];   
+  
+    const songs = [  
+      "musik1.mp3",  
+      "musik2.mp3",  
+      "musik3.mp3",  
+      "musik4.mp3",  
+      "musik5.mp3"  
+    ];  
+  
+    // Zufälliger Startsong  
+    let aktuellerIndex = Math.floor(Math.random() * songs.length);  
+    let audio = new Audio(songs[aktuellerIndex]);  
+    audio.volume = 0.5;  
+    let musikAktiv = false;  
+      
+    // Wenn Song endet → nächster Song  
+    audio.addEventListener("ended", naechsterSong);  
+  
+    // 🔊 Musik Autostart (mit Fallback)  
+    window.addEventListener("load", () => {  
+      musikAktiv = true;  
+      audio.play().catch(() => {  
+        // Falls blockiert: starte Musik beim ersten Klick  
+        document.body.addEventListener("click", () => {  
+          if (!musikAktiv) {  
+            musikAktiv = true;  
+            audio.play();  
+          }  
+        }, { once: true });  
+      });  
+      aktualisiereSongAnzeige();  
+    });  
+  
+    // Menüfunktionen  
+    function menüdisplay() {  
+      document.getElementById("overlayMenü").style.display = "flex";  
+    }  
+    function schliesseMenü() {  
+      document.getElementById("overlayMenü").style.display = "none";  
+    }  
+  
+    function zeigeEinstellungen() {  
+      document.getElementById("overlayMenü").style.display = "none";  
+      document.getElementById("overlayEinstellungen").style.display = "flex";  
+    }  
+    function schliesseEinstellungen() {  
+      document.getElementById("overlayEinstellungen").style.display = "none";  
+    }  
+  
+    function zeigeMusik() {  
+      document.getElementById("overlayEinstellungen").style.display = "none";  
+      document.getElementById("overlayMusik").style.display = "flex";  
+      aktualisiereSongAnzeige();  
+    }  
+    function schliesseMusik() {  
+      document.getElementById("overlayMusik").style.display = "none";  
+    }  
+  
+    // Klick-Logik  
+    function erhoehe() {  
+      zaehler += klickwert;  
+      document.getElementById("counter").textContent = zaehler;  
+    }  
+      
+    function upgrade() {  
+      if (zaehler >= upgradeKosten) {  
+        zaehler -= upgradeKosten;  
+        klickwert++;  
+        upgradeKosten = Math.floor(upgradeKosten * 1.5);  
+        document.getElementById("counter").textContent = zaehler;  
+        document.getElementById("wert").textContent = klickwert;  
+        document.getElementById("kosten").textContent = upgradeKosten;  
+        const btnBild = document.getElementById("btn");  
+        if (klickwert - 1 < bilder.length) {  
+          btnBild.src = bilder[klickwert - 1];  
+        }  
+      } else {  
+        alert("Nicht genug Punkte!");  
+      }  
+    }  
+  
+    // --- Auto-Logik (inkl. visueller fallender PNGs) ---  
+    const autos = []; // enthält {el, y, speed, width, height}  
+    const autoBildPfad = "Klick.png"; // <-- Pfad zum PNG, anpassen!  
+  
+    function upgradeAuto() {  
+      if (zaehler >= autoKosten) {  
+        zaehler -= autoKosten;  
+        autoPower++;  
+        autoKosten = Math.floor(autoKosten * 1.5);  
+        document.getElementById("counter").textContent = zaehler;  
+        document.getElementById("autoPower").textContent = autoPower;  
+        document.getElementById("autoKosten").textContent = autoKosten;  
+  
+        // spawn neues Auto-Bild  
+        spawnAuto();  
+      } else {  
+        alert("Nicht genug Punkte!");  
+      }  
+    }  
+  
+    function spawnAuto() {  
+      const img = document.createElement("img");  
+      img.src = autoBildPfad;  
+      img.className = "autoBild";  
+      img.style.width = "64px"; // skalierung; anpassbar  
+      img.style.transform = "translate3d(0,0,0)";  
+      // position initial oben, x zufällig  
+      const w = parseInt(img.style.width || 64);  
+      const startX = Math.random() * Math.max(0, window.innerWidth - w);  
+      img.style.left = startX + "px";  
+      img.style.top = (-100) + "px";  
+      document.body.appendChild(img);  
+  
+      // warten bis Bild geladen, damit Höhe bekannt ist  
+      img.onload = () => {  
+        const rectW = img.width || w;  
+        const rectH = img.height || (w * 0.7);  
+        const obj = {  
+          el: img,  
+          x: startX,  
+          y: -rectH - Math.random() * 100,  
+          speed: 1.0 + Math.random() * 2.0, // Geschwindigkeit variabel  
+          width: rectW,  
+          height: rectH  
+        };  
+        autos.push(obj);  
+      };  
+  
+      // Falls onload nicht feuert (z. B. schon im Cache), trotzdem pushen  
+      setTimeout(() => {  
+        if (!autos.find(a => a.el === img)) {  
+          const rectW = img.width || w;  
+          const rectH = img.height || (w * 0.7);  
+          const obj = {  
+            el: img,  
+            x: startX,  
+            y: -rectH - Math.random() * 100,  
+            speed: 1.0 + Math.random() * 2.0,  
+            width: rectW,  
+            height: rectH  
+          };  
+          autos.push(obj);  
+        }  
+      }, 200);  
+    }  
+  
+    // Animations-Schleife  
+    function animateAutos() {  
+      const height = window.innerHeight;  
+      for (let i = 0; i < autos.length; i++) {  
+        const a = autos[i];  
+        // Geschwindigkeit kann mit autoPower skaliert werden (optional)  
+        const speed = a.speed; // * (1 + autoPower * 0.02);  
+        a.y += speed;  
+        // wende Position an  
+        a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0)`;  
+        // wenn unten angekommen -> wieder nach oben setzen und ggf. neu x auswählen  
+        if (a.y > height + a.height) {  
+          a.y = -a.height - Math.random() * 50;  
+          a.x = Math.random() * Math.max(0, window.innerWidth - a.width);  
+          // optional: leichte "spawn"-Effekt (kurzer Scale)  
+          a.el.style.transition = "transform 0.12s linear";  
+          // kleine Skalierung als visueller Hinweis (kurz)  
+          a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0) scale(0.9)`;  
+          setTimeout(() => {  
+            a.el.style.transform = `translate3d(${a.x}px, ${a.y}px, 0) scale(1)`;  
+          }, 120);  
+        }  
+      }  
+      requestAnimationFrame(animateAutos);  
+    }  
+    requestAnimationFrame(animateAutos);  
+  
+    // Auto-Clicker KPS Logik (1 Klick pro Sekunde pro Auto)  
+    setInterval(function() {  
+      zaehler += autoPower;  
+      document.getElementById("counter").textContent = zaehler;  
+    }, 1000);  
+  
+    // 🎵 Musikfunktionen  
+    function toggleMusik() {  
+      if (musikAktiv) {  
+        audio.pause();  
+        musikAktiv = false;  
+      } else {  
+        audio.play();  
+        musikAktiv = true;  
+      }  
+    }  
+  
+    function lautstärkeÄndern(wert) {  
+      audio.volume = wert;  
+    }  
+  
+    function naechsterSong() {  
+      aktuellerIndex = (aktuellerIndex + 1) % songs.length;  
+      starteSong();  
+    }  
+  
+    function vorherigerSong() {  
+      aktuellerIndex = (aktuellerIndex - 1 + songs.length) % songs.length;  
+      starteSong();  
+    }  
+  
+    function starteSong() {  
+      audio.pause();  
+      audio = new Audio(songs[aktuellerIndex]);  
+      audio.volume = document.getElementById("musikRegler").value;  
+      audio.addEventListener("ended", naechsterSong);  
+      if (musikAktiv) audio.play();  
+      aktualisiereSongAnzeige();  
+    }  
+  
+    function aktualisiereSongAnzeige() {  
+      document.getElementById("aktuellerSong").textContent =   
+        "Aktueller Song: " + songs[aktuellerIndex];  
+    }  
+  </script>  </body>  
+</html>
